@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from google import genai
 import argparse
 from google.genai import types
+from prompts import system_prompt
 
 def main():
     print("Hello from python-ai-agent!")
@@ -25,7 +26,8 @@ def main():
 
     agent_response = client.models.generate_content(
         model = "gemini-2.5-flash",
-        contents = messages
+        contents = messages,
+        config=types.GenerateContentConfig(system_instruction=system_prompt),
     )
 
     if agent_response is None or agent_response.usage_metadata is None:

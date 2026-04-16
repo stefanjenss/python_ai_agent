@@ -4,10 +4,9 @@ from google import genai
 import argparse
 from google.genai import types
 from prompts import system_prompt
+from call_function import available_functions
 
 def main():
-    print("Hello from python-ai-agent!")
-
     load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
     if api_key is None:
@@ -27,7 +26,10 @@ def main():
     agent_response = client.models.generate_content(
         model = "gemini-2.5-flash",
         contents = messages,
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            tools=[available_functions],
+        ),
     )
 
     if agent_response is None or agent_response.usage_metadata is None:
@@ -37,7 +39,11 @@ def main():
         print(f"Prompt tokens: {agent_response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {agent_response.usage_metadata.candidates_token_count}")
 
-    print(agent_response.text)
+    if agent_response.function_calls is not None:
+        for function_call in agent_response.function_calls:
+            print(f"Calling function: {function_call.name}({function_call.args})")
+    else:
+        print(agent_response.text)
 
 if __name__ == "__main__":
     main()

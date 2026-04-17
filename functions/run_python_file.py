@@ -1,7 +1,12 @@
 import subprocess
 import os
+from google.genai import types
 
-def run_python_file(working_directory, file_path, args=None):
+def run_python_file(
+        working_directory: str,
+        file_path: str, 
+        args: list[str] | None = None
+) -> str:
     try:
         # Make the file path absolute
         def make_absolute(
@@ -61,3 +66,26 @@ def run_python_file(working_directory, file_path, args=None):
         return output_string
     except Exception as e:
         return f"Error: executing Python file: {e}"
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Execute a specified Python file within the working directory with the Python3 interpreter and return its output. Accepts additional CLI args as an optional array.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the Python file to run, relative to the working directory. It is not optional",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(
+                    type=types.Type.STRING,
+                ),
+                description="An optional list of arguments to be passed to the Python script"
+            ),
+        },
+        required=["file_path"],
+    ),
+)
+

@@ -22,18 +22,21 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
     # --- Regerate and return the model's response ---
+    
+    config = types.GenerateContentConfig(
+        system_instruction=system_prompt,
+        tools=[available_functions],
+    )
 
     agent_response = client.models.generate_content(
         model = "gemini-2.5-flash",
         contents = messages,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            tools=[available_functions],
-        ),
+        config=config,
     )
 
     if agent_response is None or agent_response.usage_metadata is None:
         raise RuntimeError("Either the agent_response or '.usage_metadata' is 'None'")
+
     if args.verbose == True:
         print(f"User prompt: {args.user_prompt}")
         print(f"Prompt tokens: {agent_response.usage_metadata.prompt_token_count}")

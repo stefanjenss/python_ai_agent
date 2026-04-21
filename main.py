@@ -4,7 +4,7 @@ from google import genai
 import argparse
 from google.genai import types
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 def main():
     load_dotenv()
@@ -43,8 +43,20 @@ def main():
         print(f"Response tokens: {agent_response.usage_metadata.candidates_token_count}")
 
     if agent_response.function_calls is not None:
+        all_function_call_results: list = []
         for function_call in agent_response.function_calls:
-            print(f"Calling function: {function_call.name}({function_call.args})")
+            function_call_result = call_function(function_call)
+            if function_call_result.parts is None:
+                raise Exception(f"The '.parts[0]' of functional call {function_call_result} is None")
+            if function_call_result.parts[0].function_response is None:
+                raise Exception(f"The '.function_response' of functional call {function_call_result} is None")
+            if function_call_result.parts[0].function_response.response is None:
+                raise Exception(f"The '.function_response.response' of functional call {function_call_result} is None")
+
+            all_function_call_results.append(function_call_result.parts[0])
+
+            if args.verbose:
+                print(f"-> {function_call_result.parts[0].function_response.response}")
     else:
         print(agent_response.text)
 
